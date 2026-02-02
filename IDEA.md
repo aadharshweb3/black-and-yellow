@@ -105,3 +105,110 @@ SOLUTION:
 ├── User encrypts order + secret to TEE public key
 ├── TEE holds secrets securely in isolated memory
 ├── Secrets ONLY released after both parties sign match
+├── User doesn't need to keep secret locally
+└── ZK proofs generated asynchronously from released secrets
+```
+
+---
+
+## Complete Trade Lifecycle
+
+### Step 1: Order Creation (client-side, ~10ms)
+```
+order = {LONG, BTC, 0.5, $97,200, 10x}
+secret = 0x7a3f...random
+commitment = keccak256(order || secret) = 0xabc123...
+encrypted = encrypt({order, secret}, TEE_PUBKEY)
+```
+
+### Step 2: Submit to System (~50ms)
+```
+→ Yellow: "Lock $4,860 margin against commitment 0xabc123"
+→ TEE: encrypted payload
+
+Yellow locks funds instantly (state channel)
+TEE decrypts, stores order+secret, adds to book
+
+PUBLIC SEES: "Someone placed an order" (no details)
+```
+
+### Step 3: Counterparty Places Order (~50ms)
+```
+Bob: SHORT BTC @ $97,180, 10x
+Same process: commitment + encrypted payload
+```
+
+### Step 4: TEE Matches (~10ms)
+```
+TEE matching engine (code hash: 0xdef456 on-chain):
+├── Alice: LONG 0.5 BTC @ $97,200
+├── Bob: SHORT 0.5 BTC @ $97,180
+├── CROSS! Execute at midpoint: $97,190
+└── Create match proposal
+
+Match proposal:
+{
+  match_id: "0x789...",
+  alice_commitment: "0xabc123",
+  bob_commitment: "0xdef456",
+  price: $97,190,
+  size: 0.5 BTC,
+  alice_position: LONG,
+  bob_position: SHORT
+}
+```
+
+### Step 5: Both Sign Match (~100ms)
+```
+TEE sends match proposal to Alice and Bob
+
+Alice reviews:
+"I committed to LONG@$97,200, getting filled at $97,190? ✓"
+Alice signs: sig_alice
+
+Bob reviews:
+"I committed to SHORT@$97,180, getting filled at $97,190? ✓"
+Bob signs: sig_bob
+
+MATCH IS NOW LOCKED
+Neither can back out
+```
+
+### Step 6: State Update (~50ms)
+```
+TEE sends signed state update to Yellow:
+├── Alice: -$4,859.50 margin locked, LONG position opened
+└── Bob: -$4,859.50 margin locked, SHORT position opened
+
+Yellow updates state channel balances instantly
+
+✅ TRADE COMPLETE
+Alice and Bob see new positions immediately
+Total time: ~270ms
+```
+
+### Step 7: Secret Release (async, ~10ms)
+```
+TEE has both signatures → releases secrets:
+├── Alice's secret: 0x7a3f...
+└── Bob's secret: 0x9b2e...
+
+Sends to ZK batch prover
+```
+
+### Step 8: Batched ZK Proof (async, every ~30 seconds)
+```
+ZK Prover collects last N trades (e.g., 100)
+
+Generates proof:
+"For each trade:
+ - hash(order_i, secret_i) == commitment_i
+ - match_price was between bid and ask
+ - position updates are correct"
+
+Proof posted on-chain (or DA layer)
+```
+
+---
+
+## Security Properties
