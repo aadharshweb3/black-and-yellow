@@ -464,3 +464,190 @@ export function OrderForm({ pair, markPrice, onSubmit }: OrderFormProps) {
         </Button>
         <Button
           variant={side === "SHORT" ? "default" : "outline"}
+          onClick={() => setSide("SHORT")}
+          className={cn(
+            side === "SHORT" && "bg-loss-red hover:bg-loss-red/90"
+          )}
+        >
+          SHORT
+        </Button>
+      </div>
+
+      {/* LEVERAGE */}
+      <div className="mb-4">
+        <LeverageSelector value={leverage} onChange={setLeverage} />
+      </div>
+
+      {/* ORDER TYPE */}
+      <Tabs value={orderType} onValueChange={(v) => setOrderType(v as "LIMIT" | "MARKET")} className="mb-4">
+        <TabsList className="w-full">
+          <TabsTrigger value="LIMIT" className="flex-1">LIMIT</TabsTrigger>
+          <TabsTrigger value="MARKET" className="flex-1">MARKET</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {/* PRICE INPUT */}
+      {orderType === "LIMIT" && (
+        <div className="mb-4">
+          <label className="text-small">PRICE</label>
+          <Input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="font-mono"
+            placeholder="0.00"
+          />
+        </div>
+      )}
+
+      {/* SIZE INPUT */}
+      <div className="mb-4">
+        <label className="text-small">SIZE ({pair.split('-')[0]})</label>
+        <Input
+          type="number"
+          value={size}
+          onChange={(e) => setSize(e.target.value)}
+          className="font-mono"
+          placeholder="0.00"
+        />
+        <div className="flex gap-2 mt-2">
+          {[25, 50, 75, 100].map((pct) => (
+            <Button
+              key={pct}
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs"
+            >
+              {pct}%
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* ORDER SUMMARY */}
+      <div className="bg-muted rounded-lg p-3 mb-4 space-y-2">
+        <div className="flex justify-between text-small">
+          <span>Margin Required</span>
+          <span className="font-mono">${margin.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-small">
+          <span>Est. Fee</span>
+          <span className="font-mono">~${(margin * 0.0005).toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* SUBMIT BUTTON */}
+      <Button
+        className={cn(
+          "w-full",
+          side === "LONG"
+            ? "bg-profit-green hover:bg-profit-green/90"
+            : "bg-loss-red hover:bg-loss-red/90"
+        )}
+        onClick={() => onSubmit({
+          side,
+          type: orderType,
+          price: parseFloat(price),
+          size: parseFloat(size),
+          leverage
+        })}
+      >
+        <Lock className="w-4 h-4 mr-2" />
+        PLACE {side}
+        <span className="ml-2 text-xs opacity-70">ENCRYPTED</span>
+      </Button>
+    </Card>
+  )
+}
+```
+
+#### 5. POSITION CARD
+
+```tsx
+// components/position-card.tsx
+"use client"
+
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+
+interface PositionCardProps {
+  pair: string
+  side: "LONG" | "SHORT"
+  leverage: number
+  size: number
+  entryPrice: number
+  markPrice: number
+  liquidationPrice: number
+  pnl: number
+  pnlPercent: number
+}
+
+export function PositionCard({
+  pair,
+  side,
+  leverage,
+  size,
+  entryPrice,
+  markPrice,
+  liquidationPrice,
+  pnl,
+  pnlPercent
+}: PositionCardProps) {
+  const isProfit = pnl >= 0
+
+  return (
+    <Card className="p-4 border-l-4 border-l-primary">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{pair}</span>
+          <Badge
+            variant="outline"
+            className={cn(
+              side === "LONG" ? "border-profit-green text-profit-green" : "border-loss-red text-loss-red"
+            )}
+          >
+            {side} {leverage}x
+          </Badge>
+        </div>
+        <div className={cn(
+          "text-right",
+          isProfit ? "text-profit-green" : "text-loss-red"
+        )}>
+          <p className="font-mono font-bold">
+            {isProfit ? "+" : ""}{pnl.toFixed(2)} USDC
+          </p>
+          <p className="text-sm">
+            {isProfit ? "+" : ""}{pnlPercent.toFixed(2)}%
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 text-small mb-4">
+        <div>
+          <p className="text-muted-foreground">Size</p>
+          <p className="font-mono">{size}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Entry</p>
+          <p className="font-mono">${entryPrice.toLocaleString()}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Liq. Price</p>
+          <p className="font-mono text-loss-red">${liquidationPrice.toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1">
+          ADD MARGIN
+        </Button>
+        <Button variant="destructive" size="sm" className="flex-1">
+          CLOSE
+        </Button>
+      </div>
+    </Card>
+  )
+}
+```
