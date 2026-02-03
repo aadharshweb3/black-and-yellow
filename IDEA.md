@@ -212,3 +212,96 @@ Proof posted on-chain (or DA layer)
 ---
 
 ## Security Properties
+
+| Property | Guarantee | Mechanism |
+|----------|-----------|-----------|
+| Order privacy from traders | ✅ Cryptographic | Commitment hides until match |
+| Order privacy from observers | ✅ Cryptographic | Amount encrypted to TEE |
+| Order privacy from operator | ✅ Hardware | TEE isolation |
+| Matching fairness | ✅ Verifiable | Code hash on-chain + attestation |
+| Trade integrity | ✅ Cryptographic | Both parties sign |
+| Balance correctness | ✅ Cryptographic | ZK proof |
+| Secret availability | ✅ Guaranteed | TEE holds, releases on match |
+| Fund safety | ✅ Protocol | Yellow adjudication fallback |
+
+---
+
+## Trust Assumptions
+
+### You Trust:
+1. **TEE hardware is secure** - Intel/AMD/AWS haven't backdoored it
+2. **Matching code is what's committed** - Verified via attestation
+3. **Yellow protocol works** - State channels + adjudication
+4. **ZK proofs are sound** - Math
+
+### You Don't Trust:
+- ❌ Black And Yellow operator (can't see orders - TEE)
+- ❌ Black And Yellow operator (can't manipulate matching - verified code)
+- ❌ Other traders (can't see your orders - commitments)
+- ❌ Network observers (can't see amounts - encrypted)
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| State Channels | Yellow Network / Nitrolite |
+| TEE | AWS Nitro Enclaves (mock for hackathon) |
+| ZK Proofs | Batched SNARKs |
+| Cross-chain Deposits | LI.FI Composer |
+| Settlement Chain | Base Mainnet |
+| Frontend | React + TypeScript |
+| Price Feeds | Pyth / Chainlink |
+
+---
+
+## Prize Targets
+
+| Sponsor | Track | Integration |
+|---------|-------|-------------|
+| **Yellow Network** ($15k) | State Channels | Core settlement infrastructure |
+| **LI.FI** ($6k) | Cross-chain | Deposit from any chain |
+| **Uniswap** ($5k) | Privacy DeFi | Private orderbook concept |
+
+**Max Potential: $26k**
+
+---
+
+## Hackathon Scope
+
+### Must Have
+- [ ] Order creation: commitment + encrypted payload
+- [ ] Yellow integration: margin locking against commitment
+- [ ] Matching engine: in simulated/mock TEE
+- [ ] Match signing flow: both parties confirm
+- [ ] State channel update on match
+- [ ] Secret release after match
+- [ ] LI.FI cross-chain deposits
+- [ ] Basic UI with hidden orderbook visualization
+- [ ] 3 perpetual markets: BTC, ETH, SOL
+
+### Nice to Have
+- [ ] Actual TEE deployment (AWS Nitro)
+- [ ] ZK batch prover
+- [ ] On-chain code hash commitment
+- [ ] Position management (close, add margin)
+- [ ] Liquidation engine
+
+---
+
+## Demo Script
+
+1. "Here's Black And Yellow - a private perpetuals exchange"
+2. Alice deposits via LI.FI (any chain → Base USDC)
+3. Alice places hidden LONG order (show commitment only)
+4. Bob places hidden SHORT order
+5. Match found! Both sign
+6. Positions open instantly (Yellow state channels)
+7. "In production: TEE ensures operator can't see orders, verified code ensures fair matching, ZK proofs verify all trades"
+
+---
+
+## The Pitch
+
+> "Black And Yellow is a private perpetuals exchange where your orders are hidden from everyone — including us. Orders are encrypted to a TEE that runs verified matching code. When orders match, both parties sign, balances update instantly via Yellow, and batched ZK proofs make everything verifiable on-chain. The result: CEX speed, DEX trust, and privacy by default."
