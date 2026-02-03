@@ -651,3 +651,143 @@ export function PositionCard({
   )
 }
 ```
+
+#### 6. PRIVACY STATUS INDICATOR
+
+```tsx
+// components/privacy-status.tsx
+"use client"
+
+import { cn } from "@/lib/utils"
+import { Shield, Lock, Eye, EyeOff } from "lucide-react"
+
+interface PrivacyStatusProps {
+  steps: {
+    label: string
+    status: "pending" | "complete" | "active"
+  }[]
+}
+
+export function PrivacyStatus({ steps }: PrivacyStatusProps) {
+  return (
+    <div className="bg-card border border-border rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="w-5 h-5 text-primary" />
+        <h3 className="font-semibold">PRIVACY STATUS</h3>
+      </div>
+
+      <div className="space-y-3">
+        {steps.map((step, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <div className={cn(
+              "w-6 h-6 rounded-full flex items-center justify-center text-xs",
+              step.status === "complete" && "bg-profit-green text-white",
+              step.status === "active" && "bg-primary text-primary-foreground animate-pulse",
+              step.status === "pending" && "bg-muted text-muted-foreground"
+            )}>
+              {step.status === "complete" ? "✓" : step.status === "active" ? "○" : "○"}
+            </div>
+            <span className={cn(
+              "text-sm",
+              step.status === "pending" && "text-muted-foreground"
+            )}>
+              {step.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-small text-muted-foreground">
+        <EyeOff className="w-4 h-4" />
+        <span>Your order details are encrypted</span>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## PAGE SPECIFICATIONS
+
+### PAGE 1: MARKETS DASHBOARD
+
+**Route:** `/` or `/markets`
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ◈ BLACK AND YELLOW              [MARKETS] [POSITIONS] [HISTORY]       │
+│                                                    🔍   🌙   [0x1a2b]  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  PERPETUAL MARKETS                                     24H VOL: $2.4M   │
+│  ══════════════════                                                     │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  [BTC LOGO]  BTC-USDC PERP    $97,234.50   +2.34%   [TRADE →]  │   │
+│  │              Vol: $1.2M | OI: $4.5M                             │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  [ETH LOGO]  ETH-USDC PERP    $3,456.78    +1.87%   [TRADE →]  │   │
+│  │              Vol: $890K | OI: $2.1M                             │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  [SOL LOGO]  SOL-USDC PERP    $178.92      -0.45%   [TRADE →]  │   │
+│  │              Vol: $340K | OI: $980K                             │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ═══════════════════════════════════════════════════════════════════   │
+│                                                                         │
+│  YOUR POSITIONS                                           Total: $124   │
+│  ──────────────                                                         │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  ETH-USDC  LONG 2x  │  Entry: $3,420  │  PnL: +$124 (+3.6%)    │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### PAGE 2: TRADING INTERFACE
+
+**Route:** `/trade/[pair]` (e.g., `/trade/btc-usdc`)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ◈ BLACK AND YELLOW      BTC-USDC PERP           [MARKETS]    [0x1a2b] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌───────────────────────────┐  ┌─────────────────────────────────────┐│
+│  │    HIDDEN ORDERBOOK       │  │         PRICE CHART                 ││
+│  │                           │  │                                     ││
+│  │  ASKS                     │  │  $97,500 ┤                          ││
+│  │  ████████████████  ???    │  │          │    ╱╲                    ││
+│  │  ██████████████    ???    │  │  $97,250 ┤   ╱  ╲   ╱╲             ││
+│  │  ████████████      ???    │  │          │  ╱    ╲_╱  ╲            ││
+│  │  ██████████        ???    │  │  $97,000 ┤_╱           ╲___        ││
+│  │  ████████          ???    │  │          └──────────────────       ││
+│  │  ─────────────────────    │  │           1H   4H   1D   1W        ││
+│  │  $97,234.50  MARK PRICE   │  │                                     ││
+│  │  ─────────────────────    │  └─────────────────────────────────────┘│
+│  │  ████████          ???    │                                         │
+│  │  ██████████        ???    │  ┌─────────────────────────────────────┐│
+│  │  ████████████      ???    │  │         PLACE ORDER                 ││
+│  │  ██████████████    ???    │  │                                     ││
+│  │  ████████████████  ???    │  │  [    LONG    ] [    SHORT    ]     ││
+│  │  BIDS                     │  │                                     ││
+│  │                           │  │  LEVERAGE                           ││
+│  │  🔒 PRIVACY ENABLED       │  │  [1x] [2x] [5x] [10x]              ││
+│  │                           │  │                                     ││
+│  └───────────────────────────┘  │  ORDER TYPE                         ││
+│                                 │  [LIMIT]      [MARKET]              ││
+│                                 │                                     ││
+│                                 │  PRICE     [__________]             ││
+│                                 │  SIZE      [__________]             ││
+│                                 │  [25%][50%][75%][MAX]               ││
+│                                 │                                     ││
+│                                 │  Margin: $4,860  |  Fee: ~$2.43     ││
+│                                 │                                     ││
+│                                 │  ┌─────────────────────────────┐    ││
+│                                 │  │   🔒 PLACE LONG (ENCRYPTED) │    ││
