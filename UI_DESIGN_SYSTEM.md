@@ -137,3 +137,143 @@ const jetbrainsMono = JetBrains_Mono({
 })
 ```
 
+### TYPOGRAPHY SCALE
+
+```css
+.text-display {
+  @apply font-inter text-4xl font-bold tracking-tight;
+}
+
+.text-h1 {
+  @apply font-inter text-2xl font-bold tracking-tight;
+}
+
+.text-h2 {
+  @apply font-inter text-xl font-semibold;
+}
+
+.text-h3 {
+  @apply font-inter text-lg font-semibold;
+}
+
+.text-body {
+  @apply font-inter text-base;
+}
+
+.text-small {
+  @apply font-inter text-sm text-muted-foreground;
+}
+
+.text-price {
+  @apply font-mono text-lg font-bold tabular-nums;
+}
+
+.text-amount {
+  @apply font-mono text-base tabular-nums;
+}
+
+.text-commitment {
+  @apply font-mono text-xs text-muted-foreground;
+}
+```
+
+---
+
+## COMPONENT LIBRARY
+
+### SHADCN/UI COMPONENTS TO INSTALL
+
+```bash
+# Core UI
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add badge
+npx shadcn@latest add separator
+
+# Forms
+npx shadcn@latest add input
+npx shadcn@latest add select
+npx shadcn@latest add slider
+npx shadcn@latest add tabs
+
+# Overlays
+npx shadcn@latest add dialog
+npx shadcn@latest add sheet
+npx shadcn@latest add tooltip
+npx shadcn@latest add popover
+
+# Data Display
+npx shadcn@latest add table
+npx shadcn@latest add skeleton
+npx shadcn@latest add progress
+
+# Feedback
+npx shadcn@latest add toast
+npx shadcn@latest add alert
+```
+
+---
+
+### CUSTOM COMPONENTS
+
+#### 1. HIDDEN ORDERBOOK
+
+```tsx
+// components/hidden-orderbook.tsx
+"use client"
+
+import { cn } from "@/lib/utils"
+
+interface OrderbookLevel {
+  depth: number // 0-100 percentage
+  count: number // number of hidden orders
+}
+
+interface HiddenOrderbookProps {
+  asks: OrderbookLevel[]
+  bids: OrderbookLevel[]
+  markPrice: number
+  spread: number
+}
+
+export function HiddenOrderbook({ asks, bids, markPrice, spread }: HiddenOrderbookProps) {
+  return (
+    <div className="bg-card rounded-lg p-4 border border-border">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-h3">HIDDEN ORDERBOOK</h3>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-hidden-purple animate-pulse" />
+          <span className="text-small">PRIVACY ENABLED</span>
+        </div>
+      </div>
+
+      {/* ASKS (SELLS) */}
+      <div className="space-y-1 mb-2">
+        {asks.map((level, i) => (
+          <div key={`ask-${i}`} className="relative h-6 flex items-center">
+            <div
+              className="absolute right-0 h-full bg-loss-red/20"
+              style={{ width: `${level.depth}%` }}
+            />
+            <span className="relative z-10 text-small text-muted-foreground ml-auto">
+              ???
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* MARK PRICE */}
+      <div className="py-3 border-y border-border flex items-center justify-between">
+        <span className="text-price text-primary">${markPrice.toLocaleString()}</span>
+        <span className="text-small">SPREAD: {spread}%</span>
+      </div>
+
+      {/* BIDS (BUYS) */}
+      <div className="space-y-1 mt-2">
+        {bids.map((level, i) => (
+          <div key={`bid-${i}`} className="relative h-6 flex items-center">
+            <div
+              className="absolute left-0 h-full bg-profit-green/20"
+              style={{ width: `${level.depth}%` }}
+            />
+            <span className="relative z-10 text-small text-muted-foreground">
