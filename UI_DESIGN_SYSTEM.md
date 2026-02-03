@@ -277,3 +277,190 @@ export function HiddenOrderbook({ asks, bids, markPrice, spread }: HiddenOrderbo
               style={{ width: `${level.depth}%` }}
             />
             <span className="relative z-10 text-small text-muted-foreground">
+              ???
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* LEGEND */}
+      <div className="mt-4 pt-4 border-t border-border">
+        <p className="text-small text-center">
+          Depth shown • Prices hidden • 🔒 Orders encrypted
+        </p>
+      </div>
+    </div>
+  )
+}
+```
+
+#### 2. MARKET CARD
+
+```tsx
+// components/market-card.tsx
+"use client"
+
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { TrendingUp, TrendingDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface MarketCardProps {
+  pair: string
+  price: number
+  change24h: number
+  volume24h: string
+  openInterest: string
+  onTrade: () => void
+}
+
+export function MarketCard({
+  pair,
+  price,
+  change24h,
+  volume24h,
+  openInterest,
+  onTrade
+}: MarketCardProps) {
+  const isPositive = change24h >= 0
+
+  return (
+    <Card className="p-4 hover:border-primary/50 transition-colors cursor-pointer group">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-primary font-bold text-sm">
+              {pair.split('-')[0]}
+            </span>
+          </div>
+          <div>
+            <h3 className="font-semibold">{pair} PERP</h3>
+            <Badge variant="outline" className="text-xs">PERPETUAL</Badge>
+          </div>
+        </div>
+
+        <Button
+          onClick={onTrade}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          TRADE
+        </Button>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-price">${price.toLocaleString()}</p>
+          <div className={cn(
+            "flex items-center gap-1 text-sm",
+            isPositive ? "text-profit-green" : "text-loss-red"
+          )}>
+            {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            <span>{isPositive ? "+" : ""}{change24h.toFixed(2)}%</span>
+          </div>
+        </div>
+
+        <div className="text-right text-small">
+          <p>Vol: {volume24h}</p>
+          <p>OI: {openInterest}</p>
+        </div>
+      </div>
+    </Card>
+  )
+}
+```
+
+#### 3. LEVERAGE SELECTOR
+
+```tsx
+// components/leverage-selector.tsx
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+interface LeverageSelectorProps {
+  value: number
+  onChange: (leverage: number) => void
+}
+
+const LEVERAGE_OPTIONS = [1, 2, 5, 10]
+
+export function LeverageSelector({ value, onChange }: LeverageSelectorProps) {
+  return (
+    <div className="space-y-2">
+      <label className="text-small">LEVERAGE</label>
+      <div className="flex gap-2">
+        {LEVERAGE_OPTIONS.map((lev) => (
+          <Button
+            key={lev}
+            variant={value === lev ? "default" : "outline"}
+            size="sm"
+            onClick={() => onChange(lev)}
+            className={cn(
+              "flex-1 font-mono",
+              value === lev && "bg-primary text-primary-foreground"
+            )}
+          >
+            {lev}x
+          </Button>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+#### 4. ORDER FORM
+
+```tsx
+// components/order-form.tsx
+"use client"
+
+import { useState } from "react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { LeverageSelector } from "./leverage-selector"
+import { Lock } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface OrderFormProps {
+  pair: string
+  markPrice: number
+  onSubmit: (order: {
+    side: "LONG" | "SHORT"
+    type: "LIMIT" | "MARKET"
+    price: number
+    size: number
+    leverage: number
+  }) => void
+}
+
+export function OrderForm({ pair, markPrice, onSubmit }: OrderFormProps) {
+  const [side, setSide] = useState<"LONG" | "SHORT">("LONG")
+  const [orderType, setOrderType] = useState<"LIMIT" | "MARKET">("LIMIT")
+  const [price, setPrice] = useState(markPrice.toString())
+  const [size, setSize] = useState("")
+  const [leverage, setLeverage] = useState(1)
+
+  const margin = (parseFloat(size) || 0) * (parseFloat(price) || 0) / leverage
+
+  return (
+    <Card className="p-4">
+      <h3 className="text-h3 mb-4">PLACE ORDER</h3>
+
+      {/* SIDE SELECTOR */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <Button
+          variant={side === "LONG" ? "default" : "outline"}
+          onClick={() => setSide("LONG")}
+          className={cn(
+            side === "LONG" && "bg-profit-green hover:bg-profit-green/90"
+          )}
+        >
+          LONG
+        </Button>
+        <Button
+          variant={side === "SHORT" ? "default" : "outline"}
