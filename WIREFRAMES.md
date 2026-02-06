@@ -561,3 +561,9 @@ Step 6: Complete
 | Card Background | Dark Gray | `#141414` |
 | Border | Gray | `#262626` |
 | Primary (Yellow) | Golden Yellow | `#FFD700` |
+| Primary Hover | Bright Yellow | `#FFED4A` |
+| Text Primary | White | `#FAFAFA` |
+| Text Secondary | Gray | `#A3A3A3` |
+| Long/Profit | Green | `#22C55E` |
+| Short/Loss | Red | `#EF4444` |
+| Locked/Encrypted | Yellow | `#FFD700` |
